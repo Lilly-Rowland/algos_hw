@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import math
 import matplotlib.pyplot as plt
 
 def merge(arr1, arr2):
@@ -20,9 +21,9 @@ def merge(arr1, arr2):
     
     #append the rest of the remaining array
     if i < len(arr1):
-        output.append(arr1[i])
+        output.extend(arr1[i:])
     elif j < len(arr2):
-        output.append(arr2[j])
+        output.extend(arr2[j:])
     return output
 
 
@@ -55,6 +56,18 @@ def insertionsort(values, n):
     return values
 
 def bucketsort(values, n):
+
+    buckets = [[] for _ in range(n)] # [[], [], []...] list of n lists
+    bucket_lengths = []
+    # put elemnts into buckets
+    for val in values:
+        bi = math.floor(val*n)
+        buckets[bi].append(val)
+
+    # ort individual bucket
+    for bucket in buckets:
+        insertionsort(bucket)
+        
     print("palcehodler")
 
 
@@ -95,8 +108,9 @@ def plot_data(time_data, sizes):
             bbox=dict(boxstyle="round", facecolor="white", edgecolor="black"))
 
     plt.tight_layout()
-    plt.show()
     plt.savefig("sorting_plot.png")
+    plt.show()
+    
 
 
 
