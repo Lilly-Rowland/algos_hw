@@ -56,19 +56,25 @@ def insertionsort(values, n):
     return values
 
 def bucketsort(values, n):
-
+    start_time = time.perf_counter()
     buckets = [[] for _ in range(n)] # [[], [], []...] list of n lists
-    bucket_lengths = []
-    # put elemnts into buckets
-    for val in values:
-        bi = math.floor(val*n)
-        buckets[bi].append(val)
+    bucket_lengths = [0]*n # get list of nbucekts lengths to use for insertion sort later
 
-    # ort individual bucket
-    for bucket in buckets:
-        insertionsort(bucket)
-        
-    print("palcehodler")
+    # disrtubut values into the diff n buckets
+    for val in values:
+        bi = int(val*n) #math.floor(val*n)
+        buckets[bi].append(val)
+        bucket_lengths[bi] += 1 
+    
+    for i, bucket in enumerate(buckets):
+        if i%1000 == 0: # check time at every 1000 values
+            current_time = time.perf_counter()
+            if current_time - start_time > 120: # if it has been going for more than 120 seocnds, time out
+                return False
+        insertionsort(bucket, bucket_lengths[i])
+
+    concat_list = [val for bucket in buckets for val in bucket]
+    return concat_list
 
 
 def plot_data(time_data, sizes):
@@ -124,12 +130,16 @@ def main():
     input_data = np.empty((2, 4), dtype=object)
 
     sizes = [100, 1000, 10000, 100000]
+    # sizes = [5,10,15,20]
     for i in range(len(sizes)):
         n = sizes[i]
         # samples = np.random.rand(n)
         input_data[0, i] = np.random.uniform(0, 1, n)  # uniform, size
-        input_data[1, i] = np.random.normal(loc=0.5, scale=0.01, size=n) #gaussian
-
+        # if i set the scale to soemthing lower like 0.00001 then it looks more like what
+        # is expected with gaussian distribtion (closer to insertion sort)
+        gauss = np.random.normal(loc=0.5, scale=0.01, size=n) #gaussian
+        gauss = np.clip(gauss, 0, 1)
+        input_data[1, i] = gauss
     # shape of time data is uniform, sizes, sorting_type
     time_data = np.full((2,4,3), np.nan)
     for i in range(input_data.shape[0]): #gaussian or uniform?
@@ -139,7 +149,7 @@ def main():
             
             # time the merge sort
             start_time = time.perf_counter()
-            mergesort(values, n)
+            ms_out = mergesort(values.copy().tolist(), n)
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
             time_data[i, j, 0] = elapsed_time
@@ -147,7 +157,7 @@ def main():
 
             # time the insertionsort
             start_time = time.perf_counter()
-            insertionsort(values, n)
+            is_out = insertionsort(values.copy().tolist(), n)
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
             time_data[i, j, 1] = elapsed_time
@@ -155,14 +165,14 @@ def main():
 
             #time the bucket sort
             start_time = time.perf_counter()
-            bucketsort(values, n)
+            bs_out = bucketsort(values.copy().tolist(), n)
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
             time_data[i, j, 2] = elapsed_time
             print(f"Bucketsort with {size_names[j]} for {distribution_names[i]} took {elapsed_time:.2f} seconds")
-
     # plot the results
     plot_data(time_data, sizes)
+
 
 if __name__ == "__main__":
     main()

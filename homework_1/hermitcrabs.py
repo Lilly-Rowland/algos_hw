@@ -1,3 +1,16 @@
+def insertionsort(values, n):
+    # running in O(n^2) time
+    for i in range(n): 
+        val = values[i] # get the current value being looked at to be sorted in
+        j = i - 1 # start at value directly left of current value
+        # loop throgh elements from 0 to i-1
+        while(values[j] >= val and j >= 0):
+            # if the left value is greater then the right value, swap with vals position
+            values[j + 1] = values[j]
+            values[j] = val # swap it with j
+            j -= 1 # decrease j
+    return values
+
 def merge(arr1, arr2):
     output = [] #output array is len(arr1) + len(arr2) size
     i, j, k = 0, 0, 0 # initialize variables
@@ -23,8 +36,9 @@ def merge(arr1, arr2):
 
 
 def mergesort(values, n):
-    if n<=1: # base case, it is length of 1
-        return values
+    #trying insertion sort for slightly larger base case to speed things up to meet time limit
+    if n<=20: # base case, it is length of 1
+        return insertionsort(values, n)
     else:
         mid = n//2  # get middle index
         arr1 = mergesort(values[:mid], mid) # call merge sort on left
@@ -55,10 +69,10 @@ def main():
     while c > 0 and s > 0: # while there are still crabs left to assign and possible shells to assign
         if shells[s] > crabs[c]: #if current shell is bigger than current crabs size
             # assign this shell to this crab
-            shells.insert(s, crabs[c]) #add new emptied shell to the list
-            # shells = shells[:-1] # dont need to actually pop of the last shell since moving pointer works for this
-            c -= 1 #go to next smaller crab
-            # shell pointer is now pointing to the shell that was just emptied
+            shells.pop() # remove the shell just used
+            shells.append(crabs[c]) # add the emptied shell to end
+            c -= 1 # go to next smaller crab
+            # s = len(shells) - 1 # point shell pointer to the last shell
         else:
             # shell too small--> try next shell
             s -= 1
