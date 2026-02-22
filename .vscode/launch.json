@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "MaxRectangle",
+            "request": "launch",
+            "mainClass": "MaxRectangle",
+            "projectName": "algos_hw_c2288267"
+        },
+        {
+            "type": "java",
             "name": "WeightedInversions",
             "request": "launch",
             "mainClass": "WeightedInversions",

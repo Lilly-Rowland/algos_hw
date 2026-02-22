@@ -1,83 +1,82 @@
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class WeightedInversions {
-    static class Output {
-        int sum;
-        int[] array;
+    //needed to make in long so sum would work
+    //getting the sum of everthing after current number
+    static long[] getEndSums(int[] arr, int low, int mid){
+        int len = mid - low + 1;
         
-        Output(int sum, int[] array){
-            this.sum = sum;
-            this.array = array;
-        }
-    }
-    
-    static int[] getEndSums(int[] arr){
         //building the suffix array
-        int[] inv_sums = new int [arr.length];
-        int N = arr.length - 1;
+        long[] inv_sums = new long [len];
 
-        inv_sums[N] = arr[N];
-        N--;
-
-        for (int i = N; i>=0; i--){
-            inv_sums[i] = arr[i] + inv_sums[i+1]; //add current val and everything after it
+        inv_sums[len - 1] = arr[mid];
+        
+        for (int i = len-2; i>=0; i--){
+            inv_sums[i] = arr[low + i] + inv_sums[i+1]; //add current val and everything after it
             //access time for these sums is O(1) for later
         }
         return inv_sums;
         
     }
 
-    static Output mergeAndCount(Output left, Output right){
-        //building the suffix array
-        int[] L = left.array;
-        int[] R = right.array;
+    static long mergeAndCount(int[] array, int[] temp, int low, int mid, int high){
+        
+        //o(n) to get the end sums in here
+        long[] left_sums = getEndSums(array, low, mid);
 
-        int[] left_sums = getEndSums(left.array);
-        int[] merged = new int[L.length + R.length];
-        int i = 0, j = 0, k, total= 0;
+        //building the end sums array
+        int i = low;
+        int j = mid + 1;
+        int k = low;
+        long total = 0;
 
-        for (k = 0; k<merged.length && i < L.length && j < R.length; k++){
-            if (L[i] <= R[j]){
-                merged[k] = L[i];
-                i++;
-            }
-            else {
-                //it is an inversion!!!
-                merged[k] = R[j];
+        while (i <= mid && j <= high) {
+            //there is no inversion
+            if (array[i] <= array[j]) {
+                temp[k++] = array[i++];
+            } else {
+                //tohere is an inversion!!!
+                temp[k++] = array[j]; //swap for emrging
 
-                total += R[j] * (L.length - i);
-                total += left_sums[i];
+                int remaining = mid - i + 1;
+
+                total += (long) array[j] * remaining; //get the remaining sum using long arithmetic
+                total += left_sums[i - low]; //use left sums to get the total of other part
+
                 j++;
             }
         }
         //copy remaining like in merge of mergsort
-        while (i < L.length) {
-            merged[k++] = L[i++];
+        while (i <= mid) {
+            temp[k++] = array[i++];
         }
 
-        while (j < R.length) {
-            merged[k++] = R[j++];
+        while (j <= high) {
+            temp[k++] = array[j++];
         }
-        return new Output(total, merged);
+
+        // copy merged segment back
+        for (int t = low; t <= high; t++) {
+            array[t] = temp[t];
+        }
+        return total;
 
     }
 
-    static Output mergeSortCount(int[] array, int n) {
-        //int n = values.length; //get length of values to sort
-        if (n<=1) {
-            return new Output(0, array);
+    static long mergeSortCount(int[] array, int[] temp, int low, int high) {
+        if (low >= high) {
+            return 0;
         }
-        int mid = n/2; //n is midle value
-        //get the arrays to return in left and right
-        int[] arr1  = Arrays.copyOfRange(array, 0, mid);
-        int[] arr2 = Arrays.copyOfRange(array, mid, n);
-        //recurse on left and right side
-        Output left = mergeSortCount(arr1, mid);
-        Output right = mergeSortCount(arr2, n-mid);
-        Output merged = mergeAndCount(left, right);
+        
+        //int n = values.length; //get length of values to sort
+        int mid = (low + high) / 2;
 
-        return new Output(left.sum + right.sum + merged.sum, merged.array);
+        //recurse! get left part, right part, and then sum between the two
+        long leftSum = mergeSortCount(array, temp, low, mid);
+        long rightSum = mergeSortCount(array, temp, mid + 1, high);
+        long interSum = mergeAndCount(array, temp, low, mid, high);
+
+        return leftSum + rightSum + interSum;
 
     }
     
@@ -86,15 +85,19 @@ public class WeightedInversions {
 
         //scan in length of the array
         int n = sc.nextInt();
+        int[] array = new int[n];
+        int[] temp = new int[n];
 
         //scan in the actually array A
-        int[] array = new int[n];
+ 
         for (int i = 0; i < n; i++) array[i] = sc.nextInt();
 
-        Output output = mergeSortCount(array, n);
+
+        long result = mergeSortCount(array, temp, 0, n - 1);
 
         //return output
-        System.out.println(output.sum);
+        
+        System.out.println(result);
         sc.close();
     }
 }
